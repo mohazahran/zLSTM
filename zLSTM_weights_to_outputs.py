@@ -469,7 +469,6 @@ class zLSTM(object):
       
                 
     def stable_softmax(self, X):
-        #table softmax
         exps = np.exp(X - np.max(X))
         return exps / np.sum(exps)
     
