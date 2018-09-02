@@ -496,7 +496,7 @@ def main():
     trainPath = 'toyExample' 
     modelPath = 'toyExample_zLSTM.pkl'
     H = 50 # LSTM inner dimension size
-    epochs = 500
+    epochs = 1000
     learningRate = 0.1 
     clipGradients = True
     useAdaGrad = True
