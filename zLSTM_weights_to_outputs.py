@@ -95,10 +95,7 @@ def preProcessing_charBased(filePath='',  v2i = None, i2v = None):
     else:
         sentences = f.read().split('\n')
         
-    #sentences = ["%s_%s_%s" % (startToken, x, endToken) for x in sentences]
     sentences = ["%s %s %s" % (startToken, x, endToken) for x in sentences]
-    #for i, sent in enumerate(sentences):
-    #    sentences[i] = [c if c in v2i else unknown_token for w in sent]
     X,Y = [],[]
     for sent in sentences:
         X.append(np.asarray( [v2i[c] for c in sent[:-1]] ))
@@ -496,50 +493,31 @@ class zLSTM(object):
 
 def main():
     np.random.seed(7)
-    '''
-    dir = 'datasets/PTB/'
-    trainPath = dir + 'ptb.train.txt'; valPath = dir + 'ptb.valid.txt'; testPath = dir + 'ptb.test.txt';
-    vocabSize = 500 
-    X_train, Y_train, v2i, i2v = preProcessing(filePath=trainPath, vocabSize=vocabSize ,  v2i = None, i2v = None)
-    X_val, Y_val, v2i, i2v = preProcessing(filePath=valPath, vocabSize=vocabSize ,  v2i = v2i, i2v = i2v)
-    X_test, Y_test, v2i, i2v = preProcessing(filePath=testPath, vocabSize=vocabSize ,  v2i = v2i, i2v = i2v)
-    '''
-    dir = ''
-    #trainPath = dir + 'ptb.char.train.txt'; valPath = dir + 'ptb.char.valid.txt'; testPath = dir + 'ptb.char.test.txt';
-    #trainPath = dir + 'ptb.char.sample.txt'; valPath = dir + 'ptb.char.sample.txt'; testPath = dir + 'ptb.char.sample.txt';
-    trainPath = 'datasets/birthDeath/birthDeath.txt' 
-    modelPath = 'datasets/birthDeath/birthDeath_zLSTM.pkl'
-    #X_train, Y_train, v2i, i2v = preProcessing_charBased(filePath=trainPath, v2i = None, i2v = None)
-    #X_val, Y_val, v2i, i2v = preProcessing_charBased(filePath=valPath, v2i = v2i, i2v = i2v)
-    #X_test, Y_test, v2i, i2v = preProcessing_charBased(filePath=testPath, v2i = v2i, i2v = i2v)
     
-    X_train, Y_train, v2i, i2v = preProcessing(filePath=trainPath, vocabSize=100 ,  v2i = None, i2v = None)
+    trainPath = 'toyExample' 
+    modelPath = 'toyExample_zLSTM.pkl'
+    H = 10 # LSTM inner dimension size
+    epochs = 500
+    learningRate = 0.1 
+    clipGradients = True
+    useAdaGrad = True
+    batchSize = 1
+    BPTT_length = 5
     
-    X_train = X_train[:5000]
-    Y_train = Y_train[:5000]
-    #X_val = X_val[:100]
-    #Y_val = Y_val[:100]
-    #X_test = X_test[:100]
-    #Y_test = Y_test[:100]
+    X_train, Y_train, v2i, i2v = preProcessing_charBased(filePath=trainPath, v2i = None, i2v = None)
     
-    #X_all, Y_all, v2i, i2v = preProcessing_charBased('datasets/PTB/ptb.char.train.txt')
     
     D = len(v2i) # Number of input dimension = number of items in vocabulary
-    H = 1000 # LSTM inner dimension size
-    epochs = 500
+    
     print 'Input Size=%d, Hidden Size=%d' % (D, H)
     
-    #valQuota = 0.0
-    #X_all = X_all[:2]
-    #Y_all = Y_all[:2]
-    #valSize = int(valQuota * len(X_all))
-    #X_val = X_all[:valSize]
-    #Y_val = Y_all[:valSize]
-    #X_train = X_all[valSize:]
-    #Y_train = Y_all[valSize:]
-    
-    
-    lstm = zLSTM(inputDim=D, hiddenDim=H, learningRate=0.1, clipGradients= True, useAdaGrad=True, batchSize = 1, BPTT_length = 1000)
+    lstm = zLSTM(inputDim = D, 
+                 hiddenDim = H, 
+                 learningRate = learningRate, 
+                 clipGradients = clipGradients, 
+                 useAdaGrad = useAdaGrad, 
+                 batchSize = batchSize, 
+                 BPTT_length = BPTT_length)
     
     crossEntropyLoss = lstm.calculate_loss_batch(X_train, Y_train)
     print 'Initial Cross Entropy Loss = ', crossEntropyLoss
@@ -547,12 +525,8 @@ def main():
     
     print 'Starting training'
     
-    
     for i in range(epochs):
-        
-        #modelPath = 'models/toyExample_LSTM_model_epoch'
-        
-        
+
         lstm.train(X_train, Y_train)
         
         if i % 10 == 0:
@@ -560,15 +534,8 @@ def main():
             crossEntropyLoss = lstm.calculate_loss_batch(X_train, Y_train)
             print 'Cross Entropy TRAIN Loss = ', crossEntropyLoss
             
-            
-            #crossEntropyLoss = lstm.calculate_loss_batch(X_val, Y_val)
-            #print 'Cross Entropy VAL Loss   = ', crossEntropyLoss
-            
-            #crossEntropyLoss = lstm.calculate_loss_batch(X_test, Y_test)
-            #print 'Cross Entropy test Loss   = ', crossEntropyLoss
-            
             generatedSamples = generateText(lstm = lstm, v2i = v2i, i2v = i2v, 
-                                            startSeed = 'SENTENCE_START', 
+                                            startSeed = 'I', 
                                             genLength = 50, 
                                             instanceCount = 5, 
                                             dataGenerationType = DATA_GENERATION.SAMPLING)
