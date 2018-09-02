@@ -80,7 +80,6 @@ def preProcessing_charBased(filePath='',  v2i = None, i2v = None):
     f = open(filePath, 'r') 
     startToken = '['
     endToken = ']'
-    unknownToken = '< u n k >'
     if v2i == None or i2v == None:
         chars = f.read()
         uniqueChars = set(chars.replace('\n', ' '))
@@ -496,13 +495,17 @@ def main():
     
     trainPath = 'toyExample' 
     modelPath = 'toyExample_zLSTM.pkl'
-    H = 10 # LSTM inner dimension size
+    H = 50 # LSTM inner dimension size
     epochs = 500
     learningRate = 0.1 
     clipGradients = True
     useAdaGrad = True
     batchSize = 1
-    BPTT_length = 5
+    BPTT_length = 25
+    dataGenerationType = DATA_GENERATION.SAMPLING #either sample the prob dist of the output or use maxlikelihood of the output
+    startSeed = '[' #starting seed char for generation
+    genLength = 50 #number of char to generate
+    instanceCount = 5 #number of sequences to generate
     
     X_train, Y_train, v2i, i2v = preProcessing_charBased(filePath=trainPath, v2i = None, i2v = None)
     
@@ -535,10 +538,10 @@ def main():
             print 'Cross Entropy TRAIN Loss = ', crossEntropyLoss
             
             generatedSamples = generateText(lstm = lstm, v2i = v2i, i2v = i2v, 
-                                            startSeed = 'I', 
-                                            genLength = 50, 
-                                            instanceCount = 5, 
-                                            dataGenerationType = DATA_GENERATION.SAMPLING)
+                                            startSeed = startSeed, 
+                                            genLength = genLength, 
+                                            instanceCount = instanceCount, 
+                                            dataGenerationType = dataGenerationType)
             print 'Generated data:\n', '\n'.join(generatedSamples)
             
             #pkl.dump([lstm,v2i,i2v], open(modelPath+str(i)+'.pkl', 'wb'))
